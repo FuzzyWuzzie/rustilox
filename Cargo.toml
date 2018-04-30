@@ -1,0 +1,6 @@
+[package]
+name = "rustylox"
+version = "0.1.0"
+authors = ["Kenton Hamaluik <kenton@hamaluik.ca>"]
+
+[dependencies]
