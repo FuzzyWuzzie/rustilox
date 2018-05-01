@@ -1,5 +1,6 @@
 use std::error;
 use std::fmt;
+use std::cmp;
 
 use ::chunk::Chunk;
 use ::opcodes::*;
@@ -105,23 +106,38 @@ impl<'a> VM<'a> {
                         Some(v) => v,
                         None => return Err(InterpretError::RuntimeError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
                     };
-                    self.stack.push(-top);
+                    match -top {
+                        Some(v) => self.stack.push(v),
+                        None => return Err(InterpretError::RuntimeError(format!("can't negate a non-numeric value"), self.chunk.lines[self.ip - 1]))
+                    };
                 },
                 OP_ADD => {
                     let (a, b) = self.binary_op()?;
-                    self.stack.push(a + b);
+                    match a + b {
+                        Some(v) => self.stack.push(v),
+                        None => return Err(InterpretError::RuntimeError(format!("can't add values of differing types"), self.chunk.lines[self.ip - 1]))
+                    };
                 },
                 OP_SUBTRACT => {
                     let (a, b) = self.binary_op()?;
-                    self.stack.push(a - b);
+                    match a - b {
+                        Some(v) => self.stack.push(v),
+                        None => return Err(InterpretError::RuntimeError(format!("can't subtract values of differing types"), self.chunk.lines[self.ip - 1]))
+                    };
                 },
                 OP_MULTIPLY => {
                     let (a, b) = self.binary_op()?;
-                    self.stack.push(a * b);
+                    match a * b {
+                        Some(v) => self.stack.push(v),
+                        None => return Err(InterpretError::RuntimeError(format!("can't multiply values of differing types"), self.chunk.lines[self.ip - 1]))
+                    };
                 },
                 OP_DIVIDE => {
                     let (a, b) = self.binary_op()?;
-                    self.stack.push(a / b);
+                    match a / b {
+                        Some(v) => self.stack.push(v),
+                        None => return Err(InterpretError::RuntimeError(format!("can't divide values of differing types"), self.chunk.lines[self.ip - 1]))
+                    };
                 },
                 OP_NOT => {
                     let top = match self.stack.pop() {
@@ -130,9 +146,8 @@ impl<'a> VM<'a> {
                     };
                     match !top {
                         Some(v) => self.stack.push(v),
-                        None => return Err(InterpretError::RuntimeError(format!("can't not a non-boolean value"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(InterpretError::RuntimeError(format!("can't ! a non-boolean value"), self.chunk.lines[self.ip - 1]))
                     };
-                    //self.stack.push(!top);
                 },
 
                 OP_EQUAL => {
@@ -145,19 +160,43 @@ impl<'a> VM<'a> {
                 },
                 OP_GREATER => {
                     let (a, b) = self.binary_op()?;
-                    self.stack.push(Value::Boolean(a > b));
+                    self.stack.push(match a.partial_cmp(&b) {
+                        Some(o) => match o {
+                            cmp::Ordering::Greater => Value::Boolean(true),
+                            _ => Value::Boolean(false)
+                        },
+                        None => return Err(InterpretError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
+                    });
                 },
                 OP_GREATEREQUAL => {
                     let (a, b) = self.binary_op()?;
-                    self.stack.push(Value::Boolean(a >= b));
+                    self.stack.push(match a.partial_cmp(&b) {
+                        Some(o) => match o {
+                            cmp::Ordering::Less => Value::Boolean(false),
+                            _ => Value::Boolean(true)
+                        },
+                        None => return Err(InterpretError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
+                    });
                 },
                 OP_LESSER => {
                     let (a, b) = self.binary_op()?;
-                    self.stack.push(Value::Boolean(a < b));
+                    self.stack.push(match a.partial_cmp(&b) {
+                        Some(o) => match o {
+                            cmp::Ordering::Less => Value::Boolean(true),
+                            _ => Value::Boolean(false)
+                        },
+                        None => return Err(InterpretError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
+                    });
                 },
                 OP_LESSEREQUAL => {
                     let (a, b) = self.binary_op()?;
-                    self.stack.push(Value::Boolean(a <= b));
+                    self.stack.push(match a.partial_cmp(&b) {
+                        Some(o) => match o {
+                            cmp::Ordering::Greater => Value::Boolean(false),
+                            _ => Value::Boolean(true)
+                        },
+                        None => return Err(InterpretError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
+                    });
                 },
                 
                 _ => return Err(InterpretError::CompileError(format!("unknown opcode {:04}", instruction).to_string(), self.chunk.lines[self.ip - 1]))

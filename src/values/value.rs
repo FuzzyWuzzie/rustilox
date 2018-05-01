@@ -18,7 +18,7 @@ use Value::Boolean;
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Nil => write!(f, "Nil"),
+            Nil => write!(f, "nil"),
             Real(v) => write!(f, "{}", v),
             _Natural(v) => write!(f, "{}", v),
             Boolean(v) => write!(f, "{}", v)
@@ -27,106 +27,61 @@ impl fmt::Display for Value {
 }
 
 impl ops::Neg for Value {
-    type Output = Value;
+    type Output = Option<Value>;
 
     fn neg(self) -> Self::Output {
         match self {
-            Nil => Nil,
-            Real(v) => Real(-v),
-            _Natural(v) => _Natural(-v),
-            Boolean(_) => Nil,
+            Real(v) => Some(Real(-v)),
+            _Natural(v) => Some(_Natural(-v)),
+            _ => None
         }
     }
 }
 
 impl ops::Add for Value {
-    type Output = Value;
+    type Output = Option<Value>;
 
     fn add(self, rhs:Value) -> Self::Output {
-        match self {
-            Nil => rhs,
-            Real(l) => match rhs {
-                Nil => Real(l),
-                Real(r) => Real(l + r),
-                _Natural(r) => Real(l + (r as f64)),
-                Boolean(_) => Nil
-            },
-            _Natural(l) => match rhs {
-                Nil => _Natural(l),
-                Real(r) => Real((l as f64) + r),
-                _Natural(r) => _Natural(l + r),
-                Boolean(_) => Nil
-            }
-            Boolean(_) => Nil,
+        match (self, rhs) {
+            (Real(l), Real(r)) => Some(Real(l + r)),
+            (_Natural(l), _Natural(r)) => Some(_Natural(l + r)),
+            _ => None
         }
     }
 }
 
 impl ops::Sub for Value {
-    type Output = Value;
+    type Output = Option<Value>;
 
     fn sub(self, rhs:Value) -> Self::Output {
-        match self {
-            Nil => -rhs,
-            Real(l) => match rhs {
-                Nil => Real(l),
-                Real(r) => Real(l - r),
-                _Natural(r) => Real(l - (r as f64)),
-                Boolean(_) => Nil
-            },
-            _Natural(l) => match rhs {
-                Nil => _Natural(l),
-                Real(r) => Real((l as f64) - r),
-                _Natural(r) => _Natural(l - r),
-                Boolean(_) => Nil
-            }
-            Boolean(_) => Nil,
+        match (self, rhs) {
+            (Real(l), Real(r)) => Some(Real(l - r)),
+            (_Natural(l), _Natural(r)) => Some(_Natural(l - r)),
+            _ => None
         }
     }
 }
 
 impl ops::Mul for Value {
-    type Output = Value;
+    type Output = Option<Value>;
 
     fn mul(self, rhs:Value) -> Self::Output {
-        match self {
-            Nil => Nil,
-            Real(l) => match rhs {
-                Nil => Nil,
-                Real(r) => Real(l * r),
-                _Natural(r) => Real(l * (r as f64)),
-                Boolean(_) => Nil
-            },
-            _Natural(l) => match rhs {
-                Nil => Nil,
-                Real(r) => Real((l as f64) * r),
-                _Natural(r) => _Natural(l * r),
-                Boolean(_) => Nil
-            }
-            Boolean(_) => Nil,
+        match (self, rhs) {
+            (Real(l), Real(r)) => Some(Real(l * r)),
+            (_Natural(l), _Natural(r)) => Some(_Natural(l * r)),
+            _ => None
         }
     }
 }
 
 impl ops::Div for Value {
-    type Output = Value;
+    type Output = Option<Value>;
 
     fn div(self, rhs:Value) -> Self::Output {
-        match self {
-            Nil => Nil,
-            Real(l) => match rhs {
-                Nil => Nil,
-                Real(r) => Real(l / r),
-                _Natural(r) => Real(l / (r as f64)),
-                Boolean(_) => Nil
-            },
-            _Natural(l) => match rhs {
-                Nil => Nil,
-                Real(r) => Real((l as f64) / r),
-                _Natural(r) => _Natural(l / r),
-                Boolean(_) => Nil
-            }
-            Boolean(_) => Nil,
+        match (self, rhs) {
+            (Real(l), Real(r)) => Some(Real(l / r)),
+            (_Natural(l), _Natural(r)) => Some(_Natural(l / r)),
+            _ => None
         }
     }
 }
