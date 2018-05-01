@@ -4,14 +4,16 @@ use std::ops;
 #[derive(Debug,Clone)]
 pub enum Value {
     Null,
-    Float(f64)
+    Real(f64),
+    _Natural(i64)
 }
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Value::Null => write!(f, "null"),
-            Value::Float(v) => write!(f, "{}", v)
+            Value::Real(v) => write!(f, "{}", v),
+            Value::_Natural(v) => write!(f, "{}", v)
         }
     }
 }
@@ -22,7 +24,8 @@ impl ops::Neg for Value {
     fn neg(self) -> Value {
         match self {
             Value::Null => Value::Null,
-            Value::Float(v) => Value::Float(-v)
+            Value::Real(v) => Value::Real(-v),
+            Value::_Natural(v) => Value::_Natural(-v)
         }
     }
 }
@@ -33,9 +36,15 @@ impl ops::Add for Value {
     fn add(self, rhs:Value) -> Value {
         match self {
             Value::Null => rhs,
-            Value::Float(l) => match rhs {
-                Value::Null => Value::Float(l),
-                Value::Float(r) => Value::Float(l + r)
+            Value::Real(l) => match rhs {
+                Value::Null => Value::Real(l),
+                Value::Real(r) => Value::Real(l + r),
+                Value::_Natural(r) => Value::Real(l + (r as f64))
+            },
+            Value::_Natural(l) => match rhs {
+                Value::Null => Value::_Natural(l),
+                Value::Real(r) => Value::Real((l as f64) + r),
+                Value::_Natural(r) => Value::_Natural(l + r)
             }
         }
     }
@@ -47,9 +56,15 @@ impl ops::Sub for Value {
     fn sub(self, rhs:Value) -> Value {
         match self {
             Value::Null => -rhs,
-            Value::Float(l) => match rhs {
-                Value::Null => Value::Float(l),
-                Value::Float(r) => Value::Float(l - r)
+            Value::Real(l) => match rhs {
+                Value::Null => Value::Real(l),
+                Value::Real(r) => Value::Real(l - r),
+                Value::_Natural(r) => Value::Real(l - (r as f64))
+            },
+            Value::_Natural(l) => match rhs {
+                Value::Null => Value::_Natural(l),
+                Value::Real(r) => Value::Real((l as f64) - r),
+                Value::_Natural(r) => Value::_Natural(l - r)
             }
         }
     }
@@ -61,9 +76,15 @@ impl ops::Mul for Value {
     fn mul(self, rhs:Value) -> Value {
         match self {
             Value::Null => Value::Null,
-            Value::Float(l) => match rhs {
+            Value::Real(l) => match rhs {
                 Value::Null => Value::Null,
-                Value::Float(r) => Value::Float(l * r)
+                Value::Real(r) => Value::Real(l * r),
+                Value::_Natural(r) => Value::Real(l * (r as f64))
+            },
+            Value::_Natural(l) => match rhs {
+                Value::Null => Value::Null,
+                Value::Real(r) => Value::Real((l as f64) * r),
+                Value::_Natural(r) => Value::_Natural(l * r)
             }
         }
     }
@@ -75,9 +96,15 @@ impl ops::Div for Value {
     fn div(self, rhs:Value) -> Value {
         match self {
             Value::Null => Value::Null,
-            Value::Float(l) => match rhs {
+            Value::Real(l) => match rhs {
                 Value::Null => Value::Null,
-                Value::Float(r) => Value::Float(l / r)
+                Value::Real(r) => Value::Real(l / r),
+                Value::_Natural(r) => Value::Real(l / (r as f64))
+            },
+            Value::_Natural(l) => match rhs {
+                Value::Null => Value::Null,
+                Value::Real(r) => Value::Real((l as f64) / r),
+                Value::_Natural(r) => Value::_Natural(l / r)
             }
         }
     }

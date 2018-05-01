@@ -3,7 +3,7 @@ use std::fmt;
 
 use ::chunk::Chunk;
 use ::opcodes::*;
-use ::values::value::Value;
+use ::values::Value;
 
 #[derive(Debug)]
 pub enum InterpretError {
@@ -44,10 +44,6 @@ impl<'a> VM<'a> {
         }
     }
 
-    pub fn free(&mut self) {
-        self.stack.resize(0, Value::Null);
-    }
-
     // TODO: move into a closure inside of interpret somehow?
     fn read_byte(&mut self) -> u8 {
         self.ip += 1;
@@ -81,7 +77,7 @@ impl<'a> VM<'a> {
                     print!("[ {} ]", value);
                 }
                 println!();
-                self.chunk.disassemble_instruction(self.ip);
+                print!("{}", self.chunk.get_instruction(self.ip));
             }
 
             let instruction = self.read_byte();

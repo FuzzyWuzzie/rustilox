@@ -1,5 +1,5 @@
 pub mod value;
 pub mod valuearray;
 
-pub type Value = value::Value;
-pub type ValueArray = valuearray::ValueArray;
+pub use ::values::value::Value;
+pub use ::values::valuearray::ValueArray;

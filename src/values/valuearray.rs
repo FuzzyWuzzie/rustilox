@@ -15,29 +15,14 @@ impl ValueArray {
         }
     }
 
-    fn grow_capacity(capacity:u8) -> u8 {
-        if capacity < 8 {
-            8
-        }
-        else {
-            capacity * 2
-        }
-    }
-
     pub fn write(&mut self, value:Value) {
         if self.capacity < self.count + 1 {
-            let old_capacity = self.capacity;
-            self.capacity = Self::grow_capacity(old_capacity);
+            let old_capacity: usize = self.capacity as usize;
+            self.capacity = ::util::grow_capacity(old_capacity) as u8;
             self.values.resize(self.capacity as usize, Value::Null);
         }
 
         self.values[self.count as usize] = value;
         self.count += 1;
-    }
-
-    pub fn free(&mut self) {
-        self.count = 0;
-        self.capacity = 0;
-        self.values.resize(0, Value::Null);
     }
 }

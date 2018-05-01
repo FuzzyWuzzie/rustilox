@@ -1,3 +1,5 @@
+use std::fmt;
+
 use ::opcodes::*;
 use ::values::{Value, ValueArray};
 
@@ -7,6 +9,11 @@ pub struct Chunk {
     pub capacity: usize,
     pub constants: ValueArray,
     pub lines: Vec<usize>
+}
+
+pub struct Instruction<'a> {
+    pub chunk: &'a Chunk,
+    pub offset: usize
 }
 
 impl Chunk {
@@ -20,27 +27,10 @@ impl Chunk {
         }
     }
 
-    pub fn free(&mut self) {
-        self.count = 0;
-        self.capacity = 0;
-        self.code.resize(0, 0);
-        self.constants.free();
-        self.lines.resize(0, 0);
-    }
-
-    fn grow_capacity(capacity:usize) -> usize {
-        if capacity < 8 {
-            8
-        }
-        else {
-            capacity * 2
-        }
-    }
-
     pub fn write(&mut self, byte:u8, line:usize) {
         if self.capacity < self.count + 1 {
             let old_capacity = self.capacity;
-            self.capacity = Self::grow_capacity(old_capacity);
+            self.capacity = ::util::grow_capacity(old_capacity);
             self.code.resize(self.capacity, 0);
             self.lines.resize(self.capacity, 0);
         }
@@ -55,48 +45,66 @@ impl Chunk {
         self.constants.count - 1
     }
 
-    pub fn _disassemble_chunk(&self, name:&str) {
-        println!("== {} ==", name);
-        
-        let mut i:usize = 0;
-        while i < self.count {
-            i = self.disassemble_instruction(i);
-        }
+    fn simple_instruction(f: &mut fmt::Formatter, name:&str, offset:usize) -> Result<usize, fmt::Error> {
+        writeln!(f, "{: >16}", name)?;
+        Ok(offset + 1)
     }
 
-    fn simple_instruction(name:&str, offset:usize) -> usize {
-        println!("{: >16}", name);
-        offset + 1
-    }
-
-    fn constant_instruction(&self, name: &str, offset: usize) -> usize {
+    fn constant_instruction(&self, f: &mut fmt::Formatter, name: &str, offset: usize) -> Result<usize, fmt::Error> {
         let constant: u8 = self.code[offset + 1];
-        println!("{: >16} {:04} '{}'", name, constant, self.constants.values[constant as usize]);
-        offset + 2
+        writeln!(f, "{: >16} {:04} '{}'", name, constant, self.constants.values[constant as usize])?;
+        Ok(offset + 2)
     }
 
-    pub fn disassemble_instruction(&self, offset:usize) -> usize {
-        print!("{:04} ", offset);
+    pub fn disassemble_instruction(&self, f: &mut fmt::Formatter, offset:usize) -> Result<usize, fmt::Error> {
+        write!(f, "{:04} ", offset)?;
         if offset > 0 && self.lines[offset] == self.lines[offset - 1] {
-            print!("   | ");
+            write!(f, "   | ")?;
         }
         else {
-            print!("{:04} ", self.lines[offset]);
+            write!(f, "{:04} ", self.lines[offset])?;
         }
 
         let instruction = self.code[offset];
         match instruction {
-            OP_RETURN => Self::simple_instruction("OP_RETURN", offset),
-            OP_CONSTANT => self.constant_instruction("OP_CONSTANT", offset),
-            OP_NEGATE => Self::simple_instruction("OP_NEGATE", offset),
-            OP_ADD => Self::simple_instruction("OP_ADD", offset),
-            OP_SUBTRACT => Self::simple_instruction("OP_SUBTRACT", offset),
-            OP_MULTIPLY => Self::simple_instruction("OP_MULTIPLY", offset),
-            OP_DIVIDE => Self::simple_instruction("OP_DIVIDE", offset),
+            OP_RETURN => Self::simple_instruction(f, "OP_RETURN", offset),
+            OP_CONSTANT => self.constant_instruction(f, "OP_CONSTANT", offset),
+            OP_NEGATE => Self::simple_instruction(f, "OP_NEGATE", offset),
+            OP_ADD => Self::simple_instruction(f, "OP_ADD", offset),
+            OP_SUBTRACT => Self::simple_instruction(f, "OP_SUBTRACT", offset),
+            OP_MULTIPLY => Self::simple_instruction(f, "OP_MULTIPLY", offset),
+            OP_DIVIDE => Self::simple_instruction(f, "OP_DIVIDE", offset),
             _ => {
-                println!("Unknown opcode {}", instruction);
-                offset + 1
+                writeln!(f, "Unknown opcode {}", instruction)?;
+                Ok(offset + 1)
             }
+        }
+    }
+
+    pub fn get_instruction(&self, offset: usize) -> Instruction {
+        Instruction {
+            chunk: self,
+            offset
+        }
+    }
+}
+
+impl fmt::Display for Chunk {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut i:usize = 0;
+        while i < self.count {
+            i = self.disassemble_instruction(f, i)?;
+        }
+        
+        Ok(())
+    }
+}
+
+impl<'a> fmt::Display for Instruction<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.chunk.disassemble_instruction(f, self.offset) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e)
         }
     }
 }
