@@ -1,34 +1,9 @@
-use std::error;
-use std::fmt;
 use std::cmp;
 
 use ::chunk::Chunk;
 use ::opcodes::*;
 use ::values::Value;
-
-#[derive(Debug)]
-pub enum InterpretError {
-    CompileError(String, usize),
-    RuntimeError(String, usize)
-}
-
-impl error::Error for InterpretError {
-    fn description(&self) -> &str {
-        match self {
-            InterpretError::CompileError(_, _) => "Compile error",
-            InterpretError::RuntimeError(_, _) => "Runtime error"
-        }
-    }
-}
-
-impl fmt::Display for InterpretError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            InterpretError::CompileError(d, l) => write!(f, "Compile error: {} on line {}", d, l),
-            InterpretError::RuntimeError(d, l) => write!(f, "Runtime error: {} on line {}", d, l),
-        }
-    }
-}
+use ::errors::InterpretError;
 
 pub struct VM<'a> {
     pub chunk: &'a mut Chunk,
@@ -45,13 +20,11 @@ impl<'a> VM<'a> {
         }
     }
 
-    // TODO: move into a closure inside of interpret somehow?
     fn read_byte(&mut self) -> u8 {
         self.ip += 1;
         self.chunk.code[self.ip - 1]
     }
 
-    // TODO: move into a closure inside of interpret somehow?
     fn read_constant(&mut self) -> &Value {
         let loc = self.read_byte();
         &self.chunk.constants.values[loc as usize]

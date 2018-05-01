@@ -1,10 +1,11 @@
 use std::error::Error;
 
-mod chunk;
-mod opcodes;
-mod values;
-mod vm;
-mod util;
+pub mod chunk;
+pub mod opcodes;
+pub mod values;
+pub mod vm;
+pub mod util;
+pub mod errors;
 
 use chunk::Chunk;
 use opcodes::*;
