@@ -47,7 +47,7 @@ impl Chunk {
         self.constants.count - 1
     }
 
-    pub fn _disassemble_chunk(&self, name:&str) {
+    pub fn disassemble(&self, name:&str) {
         println!("== {} ==", name);
         
         let mut i:usize = 0;
