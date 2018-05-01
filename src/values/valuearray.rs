@@ -15,6 +15,14 @@ impl ValueArray {
         }
     }
 
+    pub fn build(values: Vec<Value>) -> ValueArray {
+        ValueArray {
+            capacity: values.len() as u8,
+            count: values.len() as u8,
+            values
+        }
+    }
+
     pub fn write(&mut self, value:Value) {
         if self.capacity < self.count + 1 {
             let old_capacity: usize = self.capacity as usize;

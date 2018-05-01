@@ -27,6 +27,16 @@ impl Chunk {
         }
     }
 
+    pub fn build(constants: ValueArray, code: Vec<u8>, lines: Vec<usize>) -> Chunk {
+        Chunk {
+            count: code.len(),
+            capacity: code.len(),
+            code,
+            constants,
+            lines
+        }
+    }
+
     pub fn write(&mut self, byte:u8, line:usize) {
         if self.capacity < self.count + 1 {
             let old_capacity = self.capacity;
