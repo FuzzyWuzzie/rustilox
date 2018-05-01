@@ -44,7 +44,7 @@ pub fn run() -> Result<(), Box<Error>> {
 
     println!("== test ==\n{}==========", chunk);
     {
-        let mut vm: VM = VM::init(&mut chunk);
+        let mut vm: VM = VM::init(&chunk);
         vm.interpret()?;
     }
 

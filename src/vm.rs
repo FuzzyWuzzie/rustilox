@@ -6,13 +6,13 @@ use ::values::Value;
 use ::errors::InterpretError;
 
 pub struct VM<'a> {
-    pub chunk: &'a mut Chunk,
+    pub chunk: &'a Chunk,
     ip: usize,
     stack: Vec<Value>
 }
 
 impl<'a> VM<'a> {
-    pub fn init(chunk: &mut Chunk) -> VM {
+    pub fn init(chunk: &Chunk) -> VM {
         VM {
             chunk: chunk,
             ip: 0,
