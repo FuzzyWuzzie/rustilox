@@ -34,10 +34,4 @@ impl ValueArray {
         self.values[self.count as usize] = value;
         self.count += 1;
     }
-
-    pub fn free(&mut self) {
-        self.count = 0;
-        self.capacity = 0;
-        self.values.resize(0, Value::Null);
-    }
 }

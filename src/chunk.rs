@@ -20,14 +20,6 @@ impl Chunk {
         }
     }
 
-    pub fn free(&mut self) {
-        self.count = 0;
-        self.capacity = 0;
-        self.code.resize(0, 0);
-        self.constants.free();
-        self.lines.resize(0, 0);
-    }
-
     fn grow_capacity(capacity:usize) -> usize {
         if capacity < 8 {
             8

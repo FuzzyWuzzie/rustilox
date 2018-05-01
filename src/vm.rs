@@ -3,7 +3,7 @@ use std::fmt;
 
 use ::chunk::Chunk;
 use ::opcodes::*;
-use ::values::value::Value;
+use ::values::Value;
 
 #[derive(Debug)]
 pub enum InterpretError {
@@ -42,10 +42,6 @@ impl<'a> VM<'a> {
             ip: 0,
             stack: Vec::new()
         }
-    }
-
-    pub fn free(&mut self) {
-        self.stack.resize(0, Value::Null);
     }
 
     // TODO: move into a closure inside of interpret somehow?
