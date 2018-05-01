@@ -29,7 +29,7 @@ impl fmt::Display for Value {
 impl ops::Neg for Value {
     type Output = Value;
 
-    fn neg(self) -> Value {
+    fn neg(self) -> Self::Output {
         match self {
             Nil => Nil,
             Real(v) => Real(-v),
@@ -42,7 +42,7 @@ impl ops::Neg for Value {
 impl ops::Add for Value {
     type Output = Value;
 
-    fn add(self, rhs:Value) -> Value {
+    fn add(self, rhs:Value) -> Self::Output {
         match self {
             Nil => rhs,
             Real(l) => match rhs {
@@ -65,7 +65,7 @@ impl ops::Add for Value {
 impl ops::Sub for Value {
     type Output = Value;
 
-    fn sub(self, rhs:Value) -> Value {
+    fn sub(self, rhs:Value) -> Self::Output {
         match self {
             Nil => -rhs,
             Real(l) => match rhs {
@@ -88,7 +88,7 @@ impl ops::Sub for Value {
 impl ops::Mul for Value {
     type Output = Value;
 
-    fn mul(self, rhs:Value) -> Value {
+    fn mul(self, rhs:Value) -> Self::Output {
         match self {
             Nil => Nil,
             Real(l) => match rhs {
@@ -111,7 +111,7 @@ impl ops::Mul for Value {
 impl ops::Div for Value {
     type Output = Value;
 
-    fn div(self, rhs:Value) -> Value {
+    fn div(self, rhs:Value) -> Self::Output {
         match self {
             Nil => Nil,
             Real(l) => match rhs {
@@ -127,6 +127,17 @@ impl ops::Div for Value {
                 Boolean(_) => Nil
             }
             Boolean(_) => Nil,
+        }
+    }
+}
+
+impl ops::Not for Value {
+    type Output = Option<Value>;
+
+    fn not(self) -> Self::Output {
+        match self {
+            Boolean(v) => Some(Boolean(!v)),
+            _ => None
         }
     }
 }

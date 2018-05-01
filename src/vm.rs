@@ -59,11 +59,11 @@ impl<'a> VM<'a> {
     fn binary_op(&mut self) -> Result<(Value, Value), InterpretError> {
         let b = match self.stack.pop() {
             Some(v) => v,
-            None => return Err(InterpretError::CompileError(format!("no value to pop"), self.chunk.lines[self.ip - 1]))
+            None => return Err(InterpretError::CompileError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
         };
         let a = match self.stack.pop() {
             Some(v) => v,
-            None => return Err(InterpretError::CompileError(format!("no value to pop"), self.chunk.lines[self.ip - 1]))
+            None => return Err(InterpretError::CompileError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
         };
 
         Ok((a, b))
@@ -103,7 +103,7 @@ impl<'a> VM<'a> {
                 OP_NEGATE => {
                     let top = match self.stack.pop() {
                         Some(v) => v,
-                        None => return Err(InterpretError::CompileError(format!("can't negate, no value to pop"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(InterpretError::RuntimeError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
                     };
                     self.stack.push(-top);
                 },
@@ -122,6 +122,17 @@ impl<'a> VM<'a> {
                 OP_DIVIDE => {
                     let (a, b) = self.binary_op()?;
                     self.stack.push(a / b);
+                },
+                OP_NOT => {
+                    let top = match self.stack.pop() {
+                        Some(v) => v,
+                        None => return Err(InterpretError::RuntimeError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
+                    };
+                    match !top {
+                        Some(v) => self.stack.push(v),
+                        None => return Err(InterpretError::RuntimeError(format!("can't not a non-boolean value"), self.chunk.lines[self.ip - 1]))
+                    };
+                    //self.stack.push(!top);
                 },
 
                 OP_EQUAL => {
@@ -149,7 +160,7 @@ impl<'a> VM<'a> {
                     self.stack.push(Value::Boolean(a <= b));
                 },
                 
-                _ => return Err(InterpretError::RuntimeError(format!("unknown opcode {:04}", instruction).to_string(), self.chunk.lines[self.ip - 1]))
+                _ => return Err(InterpretError::CompileError(format!("unknown opcode {:04}", instruction).to_string(), self.chunk.lines[self.ip - 1]))
             }
         }
     }

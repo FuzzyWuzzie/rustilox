@@ -37,6 +37,7 @@ pub fn run() -> Result<(), Box<Error>> {
     chunk.write(d, 124);
 
     chunk.write(OP_LESSER, 124);
+    chunk.write(OP_NOT, 124);
 
     chunk.write(OP_RETURN, 124);
 
