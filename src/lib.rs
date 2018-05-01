@@ -34,7 +34,7 @@ pub fn run() -> Result<(), Box<Error>> {
 
     chunk.write(OP_RETURN, 123);
 
-    chunk.disassemble("test");
+    println!("== test ==\n{}==========", chunk);
     {
         let mut vm: VM = VM::init(&mut chunk);
         vm.interpret()?;

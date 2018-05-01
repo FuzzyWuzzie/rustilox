@@ -78,7 +78,7 @@ impl<'a> VM<'a> {
                     print!("[ {} ]", value);
                 }
                 println!();
-                self.chunk.disassemble_instruction(self.ip);
+                print!("{}", self.chunk.get_instruction(self.ip));
             }
 
             let instruction = self.read_byte();
