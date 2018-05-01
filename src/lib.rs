@@ -4,6 +4,7 @@ mod chunk;
 mod opcodes;
 mod values;
 mod vm;
+mod util;
 
 use chunk::Chunk;
 use opcodes::*;

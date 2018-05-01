@@ -20,19 +20,10 @@ impl Chunk {
         }
     }
 
-    fn grow_capacity(capacity:usize) -> usize {
-        if capacity < 8 {
-            8
-        }
-        else {
-            capacity * 2
-        }
-    }
-
     pub fn write(&mut self, byte:u8, line:usize) {
         if self.capacity < self.count + 1 {
             let old_capacity = self.capacity;
-            self.capacity = Self::grow_capacity(old_capacity);
+            self.capacity = ::util::grow_capacity(old_capacity);
             self.code.resize(self.capacity, 0);
             self.lines.resize(self.capacity, 0);
         }
