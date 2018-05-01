@@ -74,6 +74,12 @@ impl Chunk {
             OP_SUBTRACT => Self::simple_instruction(f, "OP_SUBTRACT", offset),
             OP_MULTIPLY => Self::simple_instruction(f, "OP_MULTIPLY", offset),
             OP_DIVIDE => Self::simple_instruction(f, "OP_DIVIDE", offset),
+            OP_EQUAL => Self::simple_instruction(f, "OP_EQUAL", offset),
+            OP_NOTEQUAL => Self::simple_instruction(f, "OP_NOTEQUAL", offset),
+            OP_GREATER => Self::simple_instruction(f, "OP_GREATER", offset),
+            OP_GREATEREQUAL => Self::simple_instruction(f, "OP_GREATEREQUAL", offset),
+            OP_LESSER => Self::simple_instruction(f, "OP_LESSER", offset),
+            OP_LESSEREQUAL => Self::simple_instruction(f, "OP_LESSEREQUAL", offset),
             _ => {
                 writeln!(f, "Unknown opcode {}", instruction)?;
                 Ok(offset + 1)

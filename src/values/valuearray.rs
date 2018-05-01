@@ -19,7 +19,7 @@ impl ValueArray {
         if self.capacity < self.count + 1 {
             let old_capacity: usize = self.capacity as usize;
             self.capacity = ::util::grow_capacity(old_capacity) as u8;
-            self.values.resize(self.capacity as usize, Value::Null);
+            self.values.resize(self.capacity as usize, Value::Nil);
         }
 
         self.values[self.count as usize] = value;

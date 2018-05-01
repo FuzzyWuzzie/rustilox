@@ -32,7 +32,13 @@ pub fn run() -> Result<(), Box<Error>> {
 
     chunk.write(OP_NEGATE, 123);
 
-    chunk.write(OP_RETURN, 123);
+    let d = chunk.add_constant(Value::Real(0.0));
+    chunk.write(OP_CONSTANT, 124);
+    chunk.write(d, 124);
+
+    chunk.write(OP_LESSER, 124);
+
+    chunk.write(OP_RETURN, 124);
 
     println!("== test ==\n{}==========", chunk);
     {

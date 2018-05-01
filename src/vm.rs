@@ -85,7 +85,7 @@ impl<'a> VM<'a> {
                 OP_RETURN => {
                     let top = match self.stack.pop() {
                         Some(v) => v,
-                        None => Value::Null
+                        None => Value::Nil
                     };
                     println!("{}", top);
 
@@ -99,6 +99,7 @@ impl<'a> VM<'a> {
                     }
                     self.stack.push(new_constant);
                 },
+
                 OP_NEGATE => {
                     let top = match self.stack.pop() {
                         Some(v) => v,
@@ -121,7 +122,33 @@ impl<'a> VM<'a> {
                 OP_DIVIDE => {
                     let (a, b) = self.binary_op()?;
                     self.stack.push(a / b);
-                }
+                },
+
+                OP_EQUAL => {
+                    let (a, b) = self.binary_op()?;
+                    self.stack.push(Value::Boolean(a == b));
+                },
+                OP_NOTEQUAL => {
+                    let (a, b) = self.binary_op()?;
+                    self.stack.push(Value::Boolean(a != b));
+                },
+                OP_GREATER => {
+                    let (a, b) = self.binary_op()?;
+                    self.stack.push(Value::Boolean(a > b));
+                },
+                OP_GREATEREQUAL => {
+                    let (a, b) = self.binary_op()?;
+                    self.stack.push(Value::Boolean(a >= b));
+                },
+                OP_LESSER => {
+                    let (a, b) = self.binary_op()?;
+                    self.stack.push(Value::Boolean(a < b));
+                },
+                OP_LESSEREQUAL => {
+                    let (a, b) = self.binary_op()?;
+                    self.stack.push(Value::Boolean(a <= b));
+                },
+                
                 _ => return Err(InterpretError::RuntimeError(format!("unknown opcode {:04}", instruction).to_string(), self.chunk.lines[self.ip - 1]))
             }
         }
