@@ -50,9 +50,8 @@ impl<'a> VM<'a> {
 
     // TODO: move into a closure inside of interpret somehow?
     fn read_byte(&mut self) -> u8 {
-        let b = self.chunk.code[self.ip];
         self.ip += 1;
-        b
+        self.chunk.code[self.ip - 1]
     }
 
     // TODO: move into a closure inside of interpret somehow?
