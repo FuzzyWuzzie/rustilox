@@ -43,11 +43,16 @@ pub fn run() -> Result<(), Box<Error>> {
     //chunk.write(OP_NOT, 124);
     //chunk.write(OP_RETURN, 124);
 
+    // effectively:
+    // let a = -((1.2 + 3.4) / 5.6)
+    // let b = a < 0.0;
+    // return !b;
+
     println!("== test ==\n{}==========", chunk);
-    {
-        let mut vm: VM = VM::init(&chunk);
-        vm.interpret()?;
-    }
+    
+    print!("!(-((1.2 + 3.4) / 5.6) < 0.0): ");
+    let mut vm: VM = VM::init(&chunk);
+    vm.interpret()?;
 
     Ok(())
 }

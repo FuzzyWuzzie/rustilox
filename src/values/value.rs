@@ -19,8 +19,11 @@ impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Nil => write!(f, "nil"),
-            Real(v) => write!(f, "{}", v),
-            _Natural(v) => write!(f, "{}", v),
+            Real(v) => {
+                let zero = if v == 0.0 { ".0" } else { "" };
+                write!(f, "{:+}{}", v, zero)
+            },
+            _Natural(v) => write!(f, "{:+}", v),
             Boolean(v) => write!(f, "{}", v)
         }
     }
