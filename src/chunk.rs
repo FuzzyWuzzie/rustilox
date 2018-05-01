@@ -88,6 +88,11 @@ impl Chunk {
         match instruction {
             OP_RETURN => Self::simple_instruction("OP_RETURN", offset),
             OP_CONSTANT => self.constant_instruction("OP_CONSTANT", offset),
+            OP_NEGATE => Self::simple_instruction("OP_NEGATE", offset),
+            OP_ADD => Self::simple_instruction("OP_ADD", offset),
+            OP_SUBTRACT => Self::simple_instruction("OP_SUBTRACT", offset),
+            OP_MULTIPLY => Self::simple_instruction("OP_MULTIPLY", offset),
+            OP_DIVIDE => Self::simple_instruction("OP_DIVIDE", offset),
             _ => {
                 println!("Unknown opcode {}", instruction);
                 offset + 1

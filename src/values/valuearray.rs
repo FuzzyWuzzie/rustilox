@@ -1,19 +1,4 @@
-use std::fmt;
-
-#[derive(Debug,Clone)]
-pub enum Value {
-    Null,
-    Float(f64)
-}
-
-impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Value::Null => write!(f, "null"),
-            Value::Float(v) => write!(f, "{}", v)
-        }
-    }
-}
+use values::value::Value;
 
 pub struct ValueArray {
     pub capacity: u8,

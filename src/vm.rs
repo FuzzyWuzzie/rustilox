@@ -3,19 +3,19 @@ use std::fmt;
 
 use ::chunk::Chunk;
 use ::opcodes::*;
-use ::values::Value;
+use ::values::value::Value;
 
 #[derive(Debug)]
 pub enum InterpretError {
-    _CompileError(String),
-    RuntimeError(String)
+    CompileError(String, usize),
+    RuntimeError(String, usize)
 }
 
 impl error::Error for InterpretError {
     fn description(&self) -> &str {
         match self {
-            InterpretError::_CompileError(_) => "Compile error",
-            InterpretError::RuntimeError(_) => "Runtime error"
+            InterpretError::CompileError(_, _) => "Compile error",
+            InterpretError::RuntimeError(_, _) => "Runtime error"
         }
     }
 }
@@ -23,8 +23,8 @@ impl error::Error for InterpretError {
 impl fmt::Display for InterpretError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            InterpretError::_CompileError(d) => write!(f, "Compile error: {}", d),
-            InterpretError::RuntimeError(d) => write!(f, "Runtime error: {}", d),
+            InterpretError::CompileError(d, l) => write!(f, "Compile error: {} on line {}", d, l),
+            InterpretError::RuntimeError(d, l) => write!(f, "Runtime error: {} on line {}", d, l),
         }
     }
 }
@@ -56,23 +56,25 @@ impl<'a> VM<'a> {
     }
 
     // TODO: move into a closure inside of interpret somehow?
-    // TODO: figure out the fucking borrow checker
-    //fn read_constant(&self, loc: u8) -> &Value {
-    //    &self.chunk.constants.values[loc as usize]
-    //}
+    fn read_constant(&mut self) -> &Value {
+        let loc = self.read_byte();
+        &self.chunk.constants.values[loc as usize]
+    }
+
+    fn binary_op(&mut self) -> Result<(Value, Value), InterpretError> {
+        let b = match self.stack.pop() {
+            Some(v) => v,
+            None => return Err(InterpretError::CompileError(format!("no value to pop"), self.chunk.lines[self.ip - 1]))
+        };
+        let a = match self.stack.pop() {
+            Some(v) => v,
+            None => return Err(InterpretError::CompileError(format!("no value to pop"), self.chunk.lines[self.ip - 1]))
+        };
+
+        Ok((a, b))
+    }
 
     pub fn interpret(&mut self) -> Result<(), InterpretError> {
-        //let read_byte = |vm: &mut VM| -> u8 {
-        //    let b = vm.chunk.code[vm.ip];
-        //    vm.ip += 1;
-        //    b
-        //};
-
-        //let read_constant = |vm: &mut VM| -> &Value {
-        //    let loc = read_byte(vm);
-        //    &vm.chunk.constants.values[loc as usize]
-        //};
-
         loop {
             if cfg!(feature = "trace_execution") {
                 print!("          ");
@@ -83,7 +85,7 @@ impl<'a> VM<'a> {
                 self.chunk.disassemble_instruction(self.ip);
             }
 
-            let instruction = self.read_byte();//read_byte(self);
+            let instruction = self.read_byte();
             match instruction {
                 OP_RETURN => {
                     let top = match self.stack.pop() {
@@ -95,12 +97,37 @@ impl<'a> VM<'a> {
                     return Ok(());
                 },
                 OP_CONSTANT => {
-                    let loc = self.read_byte();
-                    let constant = &self.chunk.constants.values[loc as usize];//self.read_constant(loc);//read_constant(self);
-                    let new_constant = constant.clone();
+                    let new_constant:Value;
+                    {
+                        let constant = self.read_constant();
+                        new_constant = constant.clone();
+                    }
                     self.stack.push(new_constant);
                 },
-                _ => return Err(InterpretError::RuntimeError(format!("unknown opcode {:04}", instruction).to_string()))
+                OP_NEGATE => {
+                    let top = match self.stack.pop() {
+                        Some(v) => v,
+                        None => return Err(InterpretError::CompileError(format!("can't negate, no value to pop"), self.chunk.lines[self.ip - 1]))
+                    };
+                    self.stack.push(-top);
+                },
+                OP_ADD => {
+                    let (a, b) = self.binary_op()?;
+                    self.stack.push(a + b);
+                },
+                OP_SUBTRACT => {
+                    let (a, b) = self.binary_op()?;
+                    self.stack.push(a - b);
+                },
+                OP_MULTIPLY => {
+                    let (a, b) = self.binary_op()?;
+                    self.stack.push(a * b);
+                },
+                OP_DIVIDE => {
+                    let (a, b) = self.binary_op()?;
+                    self.stack.push(a / b);
+                }
+                _ => return Err(InterpretError::RuntimeError(format!("unknown opcode {:04}", instruction).to_string(), self.chunk.lines[self.ip - 1]))
             }
         }
     }

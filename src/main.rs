@@ -1,6 +1,7 @@
 extern crate rustylox;
 
 fn main() {
-    rustylox::run()
-        .expect("run");
+    if let Err(e) = rustylox::run() {
+        println!("Rustylox error: {}", e);
+    }
 }
