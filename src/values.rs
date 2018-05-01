@@ -1,13 +1,17 @@
-#[derive(Clone)]
-pub struct Value(f64);
+use std::fmt;
 
-impl Value {
-    pub fn new(v:f64) -> Value {
-        Value(v)
-    }
+#[derive(Debug,Clone)]
+pub enum Value {
+    Null,
+    Float(f64)
+}
 
-    pub fn print(&self) {
-        print!("{}", self.0);
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Value::Null => write!(f, "null"),
+            Value::Float(v) => write!(f, "{}", v)
+        }
     }
 }
 
@@ -39,7 +43,7 @@ impl ValueArray {
         if self.capacity < self.count + 1 {
             let old_capacity = self.capacity;
             self.capacity = Self::grow_capacity(old_capacity);
-            self.values.resize(self.capacity as usize, Value::new(0.0));
+            self.values.resize(self.capacity as usize, Value::Null);
         }
 
         self.values[self.count as usize] = value;
@@ -49,6 +53,6 @@ impl ValueArray {
     pub fn free(&mut self) {
         self.count = 0;
         self.capacity = 0;
-        self.values.resize(0, Value::new(0.0));
+        self.values.resize(0, Value::Null);
     }
 }

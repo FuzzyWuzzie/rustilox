@@ -4,3 +4,7 @@ version = "0.1.0"
 authors = ["Kenton Hamaluik <kenton@hamaluik.ca>"]
 
 [dependencies]
+
+[features]
+default = []
+trace_execution = []

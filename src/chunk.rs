@@ -55,7 +55,7 @@ impl Chunk {
         self.constants.count - 1
     }
 
-    pub fn disassemble_chunk(&self, name:&str) {
+    pub fn _disassemble_chunk(&self, name:&str) {
         println!("== {} ==", name);
         
         let mut i:usize = 0;
@@ -71,10 +71,7 @@ impl Chunk {
 
     fn constant_instruction(&self, name: &str, offset: usize) -> usize {
         let constant: u8 = self.code[offset + 1];
-        print!("{: >16} {:04} '", name, constant);
-        //print!("{}", self.constants.values[constant as usize]);
-        self.constants.values[constant as usize].print();
-        println!("'");
+        println!("{: >16} {:04} '{}'", name, constant, self.constants.values[constant as usize]);
         offset + 2
     }
 
