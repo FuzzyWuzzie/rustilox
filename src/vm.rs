@@ -1,9 +1,9 @@
 use std::cmp;
 
-use ::chunk::Chunk;
-use ::opcodes::*;
-use ::values::Value;
-use ::errors::InterpretError;
+use chunk::Chunk;
+use opcodes::*;
+use values::Value;
+use errors::LoxError;
 
 pub struct VM<'a> {
     pub chunk: &'a Chunk,
@@ -30,20 +30,20 @@ impl<'a> VM<'a> {
         &self.chunk.constants.values[loc as usize]
     }
 
-    fn binary_op(&mut self) -> Result<(Value, Value), InterpretError> {
+    fn binary_op(&mut self) -> Result<(Value, Value), LoxError> {
         let b = match self.stack.pop() {
             Some(v) => v,
-            None => return Err(InterpretError::CompileError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
+            None => return Err(LoxError::CompileError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
         };
         let a = match self.stack.pop() {
             Some(v) => v,
-            None => return Err(InterpretError::CompileError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
+            None => return Err(LoxError::CompileError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
         };
 
         Ok((a, b))
     }
 
-    pub fn interpret(&mut self) -> Result<(), InterpretError> {
+    pub fn interpret(&mut self) -> Result<Value, LoxError> {
         loop {
             if cfg!(feature = "trace_execution") {
                 print!("          ");
@@ -63,7 +63,7 @@ impl<'a> VM<'a> {
                     };
                     println!("{}", top);
 
-                    return Ok(());
+                    return Ok(top);
                 },
                 OP_CONSTANT => {
                     let new_constant:Value;
@@ -77,49 +77,41 @@ impl<'a> VM<'a> {
                 OP_NEGATE => {
                     let top = match self.stack.pop() {
                         Some(v) => v,
-                        None => return Err(InterpretError::RuntimeError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
-                    };
-                    match -top {
-                        Some(v) => self.stack.push(v),
-                        None => return Err(InterpretError::RuntimeError(format!("can't negate a non-numeric value"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(LoxError::RuntimeError(format!("can't negate a non-numeric value"), self.chunk.lines[self.ip - 1]))
                     };
                 },
                 OP_ADD => {
                     let (a, b) = self.binary_op()?;
                     match a + b {
                         Some(v) => self.stack.push(v),
-                        None => return Err(InterpretError::RuntimeError(format!("can't add values of differing types"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(LoxError::RuntimeError(format!("can't add values of differing types"), self.chunk.lines[self.ip - 1]))
                     };
                 },
                 OP_SUBTRACT => {
                     let (a, b) = self.binary_op()?;
                     match a - b {
                         Some(v) => self.stack.push(v),
-                        None => return Err(InterpretError::RuntimeError(format!("can't subtract values of differing types"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(LoxError::RuntimeError(format!("can't subtract values of differing types"), self.chunk.lines[self.ip - 1]))
                     };
                 },
                 OP_MULTIPLY => {
                     let (a, b) = self.binary_op()?;
                     match a * b {
                         Some(v) => self.stack.push(v),
-                        None => return Err(InterpretError::RuntimeError(format!("can't multiply values of differing types"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(LoxError::RuntimeError(format!("can't multiply values of differing types"), self.chunk.lines[self.ip - 1]))
                     };
                 },
                 OP_DIVIDE => {
                     let (a, b) = self.binary_op()?;
                     match a / b {
                         Some(v) => self.stack.push(v),
-                        None => return Err(InterpretError::RuntimeError(format!("can't divide values of differing types"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(LoxError::RuntimeError(format!("can't divide values of differing types"), self.chunk.lines[self.ip - 1]))
                     };
                 },
                 OP_NOT => {
                     let top = match self.stack.pop() {
                         Some(v) => v,
-                        None => return Err(InterpretError::RuntimeError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
-                    };
-                    match !top {
-                        Some(v) => self.stack.push(v),
-                        None => return Err(InterpretError::RuntimeError(format!("can't ! a non-boolean value"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(LoxError::RuntimeError(format!("can't ! a non-boolean value"), self.chunk.lines[self.ip - 1]))
                     };
                 },
 
@@ -138,7 +130,7 @@ impl<'a> VM<'a> {
                             cmp::Ordering::Greater => Value::Boolean(true),
                             _ => Value::Boolean(false)
                         },
-                        None => return Err(InterpretError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(LoxError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
                     });
                 },
                 OP_GREATEREQUAL => {
@@ -148,7 +140,7 @@ impl<'a> VM<'a> {
                             cmp::Ordering::Less => Value::Boolean(false),
                             _ => Value::Boolean(true)
                         },
-                        None => return Err(InterpretError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(LoxError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
                     });
                 },
                 OP_LESSER => {
@@ -158,7 +150,7 @@ impl<'a> VM<'a> {
                             cmp::Ordering::Less => Value::Boolean(true),
                             _ => Value::Boolean(false)
                         },
-                        None => return Err(InterpretError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(LoxError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
                     });
                 },
                 OP_LESSEREQUAL => {
@@ -168,11 +160,11 @@ impl<'a> VM<'a> {
                             cmp::Ordering::Greater => Value::Boolean(false),
                             _ => Value::Boolean(true)
                         },
-                        None => return Err(InterpretError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
+                        None => return Err(LoxError::RuntimeError(format!("can't compare values of differing types"), self.chunk.lines[self.ip - 1]))
                     });
                 },
                 
-                _ => return Err(InterpretError::CompileError(format!("unknown opcode {:04}", instruction).to_string(), self.chunk.lines[self.ip - 1]))
+                _ => return Err(LoxError::CompileError(format!("unknown opcode {:04}", instruction).to_string(), self.chunk.lines[self.ip - 1]))
             }
         }
     }

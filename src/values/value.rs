@@ -10,10 +10,10 @@ pub enum Value {
     Boolean(bool)
 }
 
-use Value::Nil;
-use Value::Real;
-use Value::_Natural;
-use Value::Boolean;
+use self::Value::Nil;
+use self::Value::Real;
+use self::Value::_Natural;
+use self::Value::Boolean;
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
