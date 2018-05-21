@@ -12,7 +12,7 @@ fn repl() -> Result<Value, Box<Error>> {
     loop {
         let line = rprompt::prompt_reply_stdout("> ")?;
         if line.len() == 0 {
-            return Ok(Value::Boolean(true));
+            return Ok(Value::Nil);
         }
 
         rustylox::interpret(&line)?;

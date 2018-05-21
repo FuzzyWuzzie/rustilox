@@ -22,6 +22,7 @@ pub enum TokenType {
     Print, Return, Super, This,
     True, Var, While,
 
+    Comment(String),
     Error(String),
     Eof,
 }
@@ -74,7 +75,8 @@ impl fmt::Display for TokenType {
             TokenType::True => write!(f, "true"),
             TokenType::Var => write!(f, "var"),
             TokenType::While => write!(f, "while"),
-            TokenType::Error(msg) => write!(f, "error: {:?}", msg),
+            TokenType::Comment(note) => write!(f, "comment: {}", note),
+            TokenType::Error(msg) => write!(f, "error: {}", msg),
             TokenType::Eof => write!(f, "eof"),
         }
     }

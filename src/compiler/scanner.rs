@@ -49,23 +49,6 @@ impl<'a> Scanner<'a> {
                     self.line += 1;
                     self.advance();
                 }
-                '/' => {
-                    match self.chars.nth(self.current + 1) {
-                        Some(n) => {
-                            if n == '/' {
-                                while let Some(v) = self.advance() {
-                                    if v == '\n' {
-                                        return;
-                                    }
-                                }
-                            }
-                            else {
-                                return;
-                            }
-                        },
-                        None => return
-                    };
-                }
                 _ => return
             };
         }
@@ -126,7 +109,7 @@ impl<'a> Scanner<'a> {
 
         // actually get the string contents!
         // TODO: remove to optimize!
-        let start = match self.source.char_indices().nth(self.start) {
+        let start = match self.source.char_indices().nth(self.start + 1) {
             Some(s) => s.0,
             None => return self.error_token("string underflow")
         };
@@ -234,6 +217,33 @@ impl<'a> Scanner<'a> {
         })
     }
 
+    fn comment(&mut self) -> Token {
+        loop {
+            let c = match self.chars.peek() {
+                Some(c) => *c,
+                None => break
+            };
+            if c != '\n' {
+                self.advance();
+            }
+            else {
+                break;
+            }
+        }
+
+        let start = match self.source.char_indices().nth(self.start + 2) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("comment underflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let end = match self.source.char_indices().nth(self.current - 1) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("comment overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let slice: &str = &self.source[start..end+1];
+
+        self.make_token(TokenType::Comment(slice.to_owned()))
+    }
+
     pub fn scan_token(&mut self) -> Token {
         self.skip_whitespace();
 
@@ -261,7 +271,6 @@ impl<'a> Scanner<'a> {
             '.' => self.make_token(TokenType::Dot),
             '-' => self.make_token(TokenType::Minus),
             '+' => self.make_token(TokenType::Plus),
-            '/' => self.make_token(TokenType::Slash),
             '*' => self.make_token(TokenType::Star),
 
             '!' => if self.match_next(&'=') {
@@ -287,6 +296,13 @@ impl<'a> Scanner<'a> {
                    }
                    else {
                        self.make_token(TokenType::Greater)
+                   },
+
+            '/' => if self.match_next(&'/') {
+                       self.comment()
+                   }
+                   else {
+                       self.make_token(TokenType::Slash)
                    },
 
             '"' => self.string(),
