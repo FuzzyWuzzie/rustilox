@@ -27,7 +27,7 @@ fn test_instruction_at_a_time() {
     chunk.write(OP_RETURN, 124);
 
     let mut vm: VM = VM::init(&chunk);
-    let result = vm.interpret().expect("interpret");
+    let result = vm.evaluate().expect("evaluate");
     assert_eq!(result, Value::Boolean(false));
 }
 
@@ -40,6 +40,6 @@ fn test_instruction_at_a_block() {
     );
 
     let mut vm: VM = VM::init(&chunk);
-    let result = vm.interpret().expect("interpret");
+    let result = vm.evaluate().expect("evaluate");
     assert_eq!(result, Value::Boolean(false));
 }

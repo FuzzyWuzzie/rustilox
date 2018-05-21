@@ -43,7 +43,7 @@ impl<'a> VM<'a> {
         Ok((a, b))
     }
 
-    pub fn interpret(&mut self) -> Result<Value, LoxError> {
+    pub fn evaluate(&mut self) -> Result<Value, LoxError> {
         loop {
             if cfg!(feature = "trace_execution") {
                 print!("          ");
@@ -77,6 +77,10 @@ impl<'a> VM<'a> {
                 OP_NEGATE => {
                     let top = match self.stack.pop() {
                         Some(v) => v,
+                        None => return Err(LoxError::RuntimeError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
+                    };
+                    match -top {
+                        Some(v) => self.stack.push(v),
                         None => return Err(LoxError::RuntimeError(format!("can't negate a non-numeric value"), self.chunk.lines[self.ip - 1]))
                     };
                 },
@@ -111,6 +115,10 @@ impl<'a> VM<'a> {
                 OP_NOT => {
                     let top = match self.stack.pop() {
                         Some(v) => v,
+                        None => return Err(LoxError::RuntimeError(format!("stack underflow"), self.chunk.lines[self.ip - 1]))
+                    };
+                    match !top {
+                        Some(v) => self.stack.push(v),
                         None => return Err(LoxError::RuntimeError(format!("can't ! a non-boolean value"), self.chunk.lines[self.ip - 1]))
                     };
                 },
