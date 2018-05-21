@@ -1,3 +1,6 @@
+// TODO: remove this when finished!
+#![allow(dead_code)]
+
 mod chunk;
 mod opcodes;
 mod values;
