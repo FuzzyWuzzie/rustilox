@@ -13,6 +13,10 @@ pub struct Scanner<'a> {
     pub line: usize
 }
 
+fn is_digit(c: char) -> bool {
+    c >= '0' && c <= '9'
+}
+
 impl<'a> Scanner<'a> {
     pub fn init(source: &'a String) -> Self {
         Scanner {
@@ -114,12 +118,19 @@ impl<'a> Scanner<'a> {
             return self.error_token("unterminated string");
         }
 
-        self.advance();
-        self.make_token(TokenType::String)
-    }
+        // actually get the string contents!
+        let start = match self.source.char_indices().nth(self.start) {
+            Some(s) => s.0,
+            None => return self.error_token("string underflow")
+        };
+        let end = match self.source.char_indices().nth(self.current - 1) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("string overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let slice: &str = &self.source[start..end+1];
 
-    fn is_digit(c: char) -> bool {
-        c >= '0' && c <= '9'
+        self.advance();
+        self.make_token(TokenType::String(slice.to_owned()))
     }
 
     fn number(&mut self) -> Token {
@@ -129,41 +140,43 @@ impl<'a> Scanner<'a> {
                 None => break
             };
 
-            if !Self::is_digit(c) {
+            if !is_digit(c) {
                 break;
             }
             self.advance();
         }
 
-        // look for a fractional part
-        let has_dot: bool = match self.chars.peek() {
+        let has_fractional = match self.chars.peek() {
             Some(c) => *c == '.',
             None => false
         };
-        let has_fractional = match self.chars.nth(self.current + 1) {
-            Some(c) => has_dot && Self::is_digit(c),
-            None => false
-        };
-
         if has_fractional {
-            // consume the '.'
             self.advance();
-
             loop {
                 let c = match self.chars.peek() {
                     Some(c) => *c,
                     None => break
                 };
-                if Self::is_digit(c) {
-                    self.advance();
-                }
-                else {
+
+                if !is_digit(c) {
                     break;
                 }
+                self.advance();
             }
         }
 
-        self.make_token(TokenType::Number)
+        // extract the bits
+        let start = match self.source.char_indices().nth(self.start) {
+            Some(s) => s.0,
+            None => return self.error_token("number underflow")
+        };
+        let end = match self.source.char_indices().nth(self.current - 1) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("number overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let slice: &str = &self.source[start..end+1];
+
+        self.make_token(TokenType::Number(slice.to_owned()))
     }
 
     pub fn scan_token(&mut self) -> Token {
@@ -176,7 +189,7 @@ impl<'a> Scanner<'a> {
             None => return self.make_token(TokenType::Eof)
         };
 
-        if Self::is_digit(c) {
+        if is_digit(c) {
             return self.number();
         }
 

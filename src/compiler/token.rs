@@ -14,7 +14,7 @@ pub enum TokenType {
     Less, LessEqual,
 
     // Literals.
-    Identifier, String, Number,
+    Identifier, String(String), Number(String),
 
     // Keywords.
     And, Class, Else, False,
@@ -56,8 +56,8 @@ impl fmt::Display for TokenType {
             TokenType::Less => write!(f, "<"),
             TokenType::LessEqual => write!(f, "<="),
             TokenType::Identifier => write!(f, "identifier"),
-            TokenType::String => write!(f, "string"),
-            TokenType::Number => write!(f, "number"),
+            TokenType::String(contents) => write!(f, "string: {}", contents),
+            TokenType::Number(value) => write!(f, "number: {}", value),
             TokenType::And => write!(f, "and"),
             TokenType::Class => write!(f, "class"),
             TokenType::Else => write!(f, "else"),
