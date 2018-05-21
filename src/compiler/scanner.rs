@@ -17,6 +17,12 @@ fn is_digit(c: char) -> bool {
     c >= '0' && c <= '9'
 }
 
+fn is_alpha(c: char) -> bool {
+       (c >= 'a' && c <= 'z')
+    || (c >= 'A' && c <= 'Z')
+    || c == '_'
+}
+
 impl<'a> Scanner<'a> {
     pub fn init(source: &'a String) -> Self {
         Scanner {
@@ -36,7 +42,7 @@ impl<'a> Scanner<'a> {
             };
 
             match next {
-                ' ' | '\r' | 't' => {
+                ' ' | '\r' | '\t' => {
                     self.advance();
                 },
                 '\n' => {
@@ -119,6 +125,7 @@ impl<'a> Scanner<'a> {
         }
 
         // actually get the string contents!
+        // TODO: remove to optimize!
         let start = match self.source.char_indices().nth(self.start) {
             Some(s) => s.0,
             None => return self.error_token("string underflow")
@@ -166,6 +173,7 @@ impl<'a> Scanner<'a> {
         }
 
         // extract the bits
+        // TODO: remove to optimize!
         let start = match self.source.char_indices().nth(self.start) {
             Some(s) => s.0,
             None => return self.error_token("number underflow")
@@ -177,6 +185,53 @@ impl<'a> Scanner<'a> {
         let slice: &str = &self.source[start..end+1];
 
         self.make_token(TokenType::Number(slice.to_owned()))
+    }
+
+    fn identifer(&mut self) -> Token {
+        loop {
+            let c = match self.chars.peek() {
+                Some(c) => *c,
+                None => break
+            };
+            if is_digit(c) || is_alpha(c) {
+                self.advance();
+            }
+            else {
+                break;
+            }
+        }
+        // extract the bits
+        // TODO: remove to optimize!
+        let start = match self.source.char_indices().nth(self.start) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("identifier underflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let end = match self.source.char_indices().nth(self.current - 1) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("identifier overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let slice: &str = &self.source[start..end+1];
+
+        // TODO: optimize using DFA
+        self.make_token(match slice {
+            "and" => TokenType::And,
+            "class" => TokenType::Class,
+            "else" => TokenType::Else,
+            "false" => TokenType::False,
+            "for" => TokenType::For,
+            "fun" => TokenType::Fun,
+            "if" => TokenType::If,
+            "nil" => TokenType::Nil,
+            "or" => TokenType::Or,
+            "print" => TokenType::Print,
+            "return" => TokenType::Return,
+            "super" => TokenType::Super,
+            "this" => TokenType::This,
+            "true" => TokenType::True,
+            "var" => TokenType::Var,
+            "while" => TokenType::While,
+            _ => TokenType::Identifier(slice.to_owned())
+        })
     }
 
     pub fn scan_token(&mut self) -> Token {
@@ -191,6 +246,9 @@ impl<'a> Scanner<'a> {
 
         if is_digit(c) {
             return self.number();
+        }
+        if is_alpha(c) {
+            return self.identifer();
         }
 
         match c {
