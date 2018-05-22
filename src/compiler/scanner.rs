@@ -108,7 +108,6 @@ impl<'a> Scanner<'a> {
         }
 
         // actually get the string contents!
-        // TODO: remove to optimize!
         let start = match self.source.char_indices().nth(self.start + 1) {
             Some(s) => s.0,
             None => return self.error_token("string underflow")
@@ -156,7 +155,6 @@ impl<'a> Scanner<'a> {
         }
 
         // extract the bits
-        // TODO: remove to optimize!
         let start = match self.source.char_indices().nth(self.start) {
             Some(s) => s.0,
             None => return self.error_token("number underflow")
@@ -184,7 +182,6 @@ impl<'a> Scanner<'a> {
             }
         }
         // extract the bits
-        // TODO: remove to optimize!
         let start = match self.source.char_indices().nth(self.start) {
             Some(s) => s.0,
             None => return self.error_token(&format!("identifier underflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
@@ -195,7 +192,6 @@ impl<'a> Scanner<'a> {
         };
         let slice: &str = &self.source[start..end+1];
 
-        // TODO: optimize using DFA
         self.make_token(match slice {
             "and" => TokenType::And,
             "class" => TokenType::Class,
