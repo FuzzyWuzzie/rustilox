@@ -29,7 +29,7 @@ pub fn compile(source: &String) -> Result<(), LoxError> {
 
         match token.token_type {
             TokenType::Eof => break,
-            TokenType::Error(msg) => return Err(LoxError::InterpetError(msg, scanner.line)),
+            TokenType::Error(msg) => return Err(LoxError::InterpetError(msg, line)),
             _ => ()
         }
     }

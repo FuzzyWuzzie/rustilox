@@ -54,7 +54,7 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    fn make_token(&self, token_type: TokenType) -> Token {
+    fn make_token(&self, token_type: TokenType<'a>) -> Token<'a> {
         Token {
             token_type,
             start: self.start,
@@ -65,7 +65,7 @@ impl<'a> Scanner<'a> {
 
     fn error_token(&self, msg: &str) -> Token {
         Token {
-            token_type: TokenType::Error(String::from(msg)),
+            token_type: TokenType::Error(msg.to_string()),
             start: self.start,
             length: msg.len(),
             line: self.line
@@ -120,7 +120,7 @@ impl<'a> Scanner<'a> {
         let slice: &str = &self.source[start..end+1];
 
         self.advance();
-        self.make_token(TokenType::String(slice.to_owned()))
+        self.make_token(TokenType::String(slice))
     }
 
     fn number(&mut self) -> Token {
@@ -167,7 +167,7 @@ impl<'a> Scanner<'a> {
         };
         let slice: &str = &self.source[start..end+1];
 
-        self.make_token(TokenType::Number(slice.to_owned()))
+        self.make_token(TokenType::Number(slice))
     }
 
     fn identifer(&mut self) -> Token {
@@ -213,7 +213,7 @@ impl<'a> Scanner<'a> {
             "true" => TokenType::True,
             "var" => TokenType::Var,
             "while" => TokenType::While,
-            _ => TokenType::Identifier(slice.to_owned())
+            _ => TokenType::Identifier(slice)
         })
     }
 
@@ -241,7 +241,7 @@ impl<'a> Scanner<'a> {
         };
         let slice: &str = &self.source[start..end+1];
 
-        self.make_token(TokenType::Comment(slice.to_owned()))
+        self.make_token(TokenType::Comment(slice))
     }
 
     pub fn scan_token(&mut self) -> Token {

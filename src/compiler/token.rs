@@ -1,6 +1,6 @@
 use std::fmt;
 
-pub enum TokenType {
+pub enum TokenType<'a> {
     // Single-character tokens.
     LeftParen, RightParen,
     LeftBrace, RightBrace,
@@ -14,7 +14,7 @@ pub enum TokenType {
     Less, LessEqual,
 
     // Literals.
-    Identifier(String), String(String), Number(String),
+    Identifier(&'a str), String(&'a str), Number(&'a str),
 
     // Keywords.
     And, Class, Else, False,
@@ -22,19 +22,19 @@ pub enum TokenType {
     Print, Return, Super, This,
     True, Var, While,
 
-    Comment(String),
+    Comment(&'a str),
     Error(String),
     Eof,
 }
 
-pub struct Token {
-    pub token_type: TokenType,
+pub struct Token<'a> {
+    pub token_type: TokenType<'a>,
     pub start: usize,
     pub length: usize,
     pub line: usize
 }
 
-impl fmt::Display for TokenType {
+impl<'a> fmt::Display for TokenType<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             TokenType::LeftParen => write!(f, "("),
