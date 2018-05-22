@@ -8,4 +8,12 @@ rprompt = "1.0"
 
 [features]
 default = []
+trace_scanner = []
 trace_execution = []
+
+[dev-dependencies]
+criterion = "0.2"
+
+[[bench]]
+name = "lox_benches"
+harness = false

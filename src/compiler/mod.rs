@@ -12,13 +12,20 @@ pub fn compile(source: &String) -> Result<(), LoxError> {
     loop {
         let token = scanner.scan_token();
         if token.line != line {
-            print!("{:04} ", token.line);
+            if cfg!(feature = "trace_scanner") {
+                print!("{:04} ", token.line);
+            }
             line = token.line;
         }
         else {
-            print!("   | ");
+            if cfg!(feature = "trace_scanner") {
+                print!("   | ");
+            }
         }
-        println!("{}", token.token_type);
+
+        if cfg!(feature = "trace_scanner") {
+            println!("{}", token.token_type);
+        }
 
         match token.token_type {
             TokenType::Eof => break,

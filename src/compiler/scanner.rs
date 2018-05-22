@@ -90,7 +90,6 @@ impl<'a> Scanner<'a> {
     }
 
     fn string(&mut self) -> Token {
-        let mut contents: String = String::new();
         loop {
             let c: char = match self.chars.peek() {
                 Some(c) => *c,
@@ -100,11 +99,7 @@ impl<'a> Scanner<'a> {
             match c {
                 '\n' => { self.line += 1; },
                 '"' => { break; },
-                _ => {
-                    if let Some(ch) = self.advance() {
-                        contents.push(ch);
-                    }
-                }
+                _ => { self.advance(); }
             };
         }
 
@@ -112,14 +107,23 @@ impl<'a> Scanner<'a> {
             return self.error_token("unterminated string");
         }
 
+        // actually get the string contents!
+        // TODO: remove to optimize!
+        let start = match self.source.char_indices().nth(self.start + 1) {
+            Some(s) => s.0,
+            None => return self.error_token("string underflow")
+        };
+        let end = match self.source.char_indices().nth(self.current - 1) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("string overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let slice: &str = &self.source[start..end+1];
+
         self.advance();
-        self.make_token(TokenType::String(contents))
+        self.make_token(TokenType::String(slice.to_owned()))
     }
 
-    fn number(&mut self, start_char: char) -> Token {
-        let mut contents: String = String::new();
-        contents.push(start_char);
-
+    fn number(&mut self) -> Token {
         loop {
             let c: char = match self.chars.peek() {
                 Some(c) => *c,
@@ -129,10 +133,7 @@ impl<'a> Scanner<'a> {
             if !is_digit(c) {
                 break;
             }
-            
-            if let Some(ch) = self.advance() {
-                contents.push(ch);
-            }
+            self.advance();
         }
 
         let has_fractional = match self.chars.peek() {
@@ -140,10 +141,7 @@ impl<'a> Scanner<'a> {
             None => false
         };
         if has_fractional {
-            if let Some(ch) = self.advance() {
-                contents.push(ch);
-            }
-
+            self.advance();
             loop {
                 let c = match self.chars.peek() {
                     Some(c) => *c,
@@ -153,37 +151,52 @@ impl<'a> Scanner<'a> {
                 if !is_digit(c) {
                     break;
                 }
-
-                if let Some(ch) = self.advance() {
-                    contents.push(ch);
-                }
+                self.advance();
             }
         }
 
-        self.make_token(TokenType::Number(contents))
+        // extract the bits
+        // TODO: remove to optimize!
+        let start = match self.source.char_indices().nth(self.start) {
+            Some(s) => s.0,
+            None => return self.error_token("number underflow")
+        };
+        let end = match self.source.char_indices().nth(self.current - 1) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("number overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let slice: &str = &self.source[start..end+1];
+
+        self.make_token(TokenType::Number(slice.to_owned()))
     }
 
-    fn identifer(&mut self, start_char: char) -> Token {
-        let mut name: String = String::new();
-        name.push(start_char);
-
+    fn identifer(&mut self) -> Token {
         loop {
             let c = match self.chars.peek() {
                 Some(c) => *c,
                 None => break
             };
             if is_digit(c) || is_alpha(c) {
-                if let Some(ch) = self.advance() {
-                    name.push(ch);
-                }
+                self.advance();
             }
             else {
                 break;
             }
         }
+        // extract the bits
+        // TODO: remove to optimize!
+        let start = match self.source.char_indices().nth(self.start) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("identifier underflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let end = match self.source.char_indices().nth(self.current - 1) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("identifier overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let slice: &str = &self.source[start..end+1];
 
         // TODO: optimize using DFA
-        self.make_token(match name.as_ref() {
+        self.make_token(match slice {
             "and" => TokenType::And,
             "class" => TokenType::Class,
             "else" => TokenType::Else,
@@ -200,29 +213,35 @@ impl<'a> Scanner<'a> {
             "true" => TokenType::True,
             "var" => TokenType::Var,
             "while" => TokenType::While,
-            _ => TokenType::Identifier(name)
+            _ => TokenType::Identifier(slice.to_owned())
         })
     }
 
     fn comment(&mut self) -> Token {
-        let mut note: String = String::new();
-
         loop {
             let c = match self.chars.peek() {
                 Some(c) => *c,
                 None => break
             };
             if c != '\n' {
-                if let Some(ch) = self.advance() {
-                    note.push(ch);
-                }
+                self.advance();
             }
             else {
                 break;
             }
         }
 
-        self.make_token(TokenType::Comment(note))
+        let start = match self.source.char_indices().nth(self.start + 2) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("comment underflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let end = match self.source.char_indices().nth(self.current - 1) {
+            Some(s) => s.0,
+            None => return self.error_token(&format!("comment overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+        };
+        let slice: &str = &self.source[start..end+1];
+
+        self.make_token(TokenType::Comment(slice.to_owned()))
     }
 
     pub fn scan_token(&mut self) -> Token {
@@ -236,10 +255,10 @@ impl<'a> Scanner<'a> {
         };
 
         if is_digit(c) {
-            return self.number(c);
+            return self.number();
         }
         if is_alpha(c) {
-            return self.identifer(c);
+            return self.identifer();
         }
 
         match c {
