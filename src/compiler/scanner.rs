@@ -170,7 +170,21 @@ impl<'a> Scanner<'a> {
         self.make_token(TokenType::Number(slice))
     }
 
-    fn identifer(&mut self) -> Token {
+    fn check_keyword(&self, start: usize, length: usize, rest: &str, token_type: TokenType<'a>) -> Option<TokenType<'a>> {
+        if self.current - self.start == start + length {
+            let slice_start = self.source.char_indices().nth(self.start + start).unwrap().0;
+            let slice_end = self.source.char_indices().nth(self.current - 1).unwrap().0;
+            let slice: &str = &self.source[slice_start..slice_end+1];
+
+            if slice == rest {
+                return Some(token_type)
+            }
+        }
+        
+        None
+    }
+
+    fn identifer(&mut self, start_char: &char) -> Token {
         loop {
             let c = match self.chars.peek() {
                 Some(c) => *c,
@@ -183,7 +197,60 @@ impl<'a> Scanner<'a> {
                 break;
             }
         }
-        // extract the bits
+
+        let keyword: Option<TokenType> = match start_char {
+            'a' => self.check_keyword(1, 2, "nd", TokenType::And),
+            'c' => self.check_keyword(1, 4, "lass", TokenType::Class),
+            'e' => self.check_keyword(1, 3, "lse", TokenType::Else),
+            'f' => {
+                if self.current - self.start > 1 {
+                    let second_char = self.source.chars().nth(self.start + 1).unwrap();
+                    match second_char {
+                        'a' => self.check_keyword(2, 3, "lse", TokenType::False),
+                        'o' => self.check_keyword(2, 1, "r", TokenType::For),
+                        'u' => self.check_keyword(2, 1, "n", TokenType::Fun),
+                        _ => None
+                    }
+                }
+                else {
+                    None
+                }
+            },
+            'i' => self.check_keyword(1, 1, "f", TokenType::If),
+            'n' => self.check_keyword(1, 2, "il", TokenType::Nil),
+            'o' => self.check_keyword(1, 1, "r", TokenType::Or),
+            'p' => self.check_keyword(1, 4, "rint", TokenType::Print),
+            'r' => self.check_keyword(1, 5, "eturn", TokenType::Return),
+            's' => self.check_keyword(1, 4, "uper", TokenType::Super),
+            't' => {
+                if self.current - self.start > 1 {
+                    let second_char = self.source.chars().nth(self.start + 1).unwrap();
+                    match second_char {
+                        'h' => self.check_keyword(2, 2, "is", TokenType::This),
+                        'r' => self.check_keyword(2, 2, "ue", TokenType::True),
+                        _ => None
+                    }
+                }
+                else {
+                    None
+                }
+            },
+            'v' => self.check_keyword(1, 2, "ar", TokenType::Var),
+            'w' => self.check_keyword(1, 4, "hile", TokenType::While),
+            _ => None
+        };
+
+        match keyword {
+            Some(key) => self.make_token(key),
+            None => {
+                let slice_start = self.source.char_indices().nth(self.start).unwrap().0;
+                let slice_end = self.source.char_indices().nth(self.current - 1).unwrap().0;
+                let slice: &str = &self.source[slice_start..slice_end+1];
+                self.make_token(TokenType::Identifier(slice))
+            }
+        }
+
+        /*// extract the bits
         // TODO: remove to optimize!
         let start = match self.source.char_indices().nth(self.start) {
             Some(s) => s.0,
@@ -214,7 +281,7 @@ impl<'a> Scanner<'a> {
             "var" => TokenType::Var,
             "while" => TokenType::While,
             _ => TokenType::Identifier(slice)
-        })
+        })*/
     }
 
     fn comment(&mut self) -> Token {
@@ -258,7 +325,7 @@ impl<'a> Scanner<'a> {
             return self.number();
         }
         if is_alpha(c) {
-            return self.identifer();
+            return self.identifer(&c);
         }
 
         match c {
