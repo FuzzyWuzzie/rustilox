@@ -1,5 +1,5 @@
 [package]
-name = "rustylox"
+name = "rustilox"
 version = "0.1.0"
 authors = ["Kenton Hamaluik <kenton@hamaluik.ca>"]
 
