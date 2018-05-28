@@ -5,6 +5,8 @@ use errors::LoxError;
 use self::token::TokenType;
 use self::scanner::Scanner;
 
+#[cfg(test)] mod tests;
+
 pub fn compile(source: &String) -> Result<(), LoxError> {
     let mut scanner: Scanner = Scanner::init(&source);
 

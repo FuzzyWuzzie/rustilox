@@ -303,7 +303,7 @@ impl<'a> Scanner<'a> {
 
             '"' => self.string(),
 
-            _ => self.error_token("unexpected character")
+            _ => self.error_token(&format!("unexpected character: '{}'", c))
         }
     }
 }
