@@ -90,12 +90,7 @@ impl<'a> Scanner<'a> {
     }
 
     fn string(&mut self) -> Token {
-        loop {
-            let c: char = match self.chars.peek() {
-                Some(c) => *c,
-                None => break
-            };
-
+        while let Some(c) = self.chars.peek().cloned() {
             match c {
                 '\n' => { self.line += 1; },
                 '"' => { break; },
@@ -123,12 +118,7 @@ impl<'a> Scanner<'a> {
     }
 
     fn number(&mut self) -> Token {
-        loop {
-            let c: char = match self.chars.peek() {
-                Some(c) => *c,
-                None => break
-            };
-
+        while let Some(c) = self.chars.peek().cloned() {
             if !is_digit(c) {
                 break;
             }
@@ -141,12 +131,7 @@ impl<'a> Scanner<'a> {
         };
         if has_fractional {
             self.advance();
-            loop {
-                let c = match self.chars.peek() {
-                    Some(c) => *c,
-                    None => break
-                };
-
+            while let Some(c) = self.chars.peek().cloned() {
                 if !is_digit(c) {
                     break;
                 }
@@ -169,11 +154,7 @@ impl<'a> Scanner<'a> {
     }
 
     fn identifer(&mut self) -> Token {
-        loop {
-            let c = match self.chars.peek() {
-                Some(c) => *c,
-                None => break
-            };
+        while let Some(c) = self.chars.peek().cloned() {
             if is_digit(c) || is_alpha(c) {
                 self.advance();
             }
@@ -181,6 +162,7 @@ impl<'a> Scanner<'a> {
                 break;
             }
         }
+        
         // extract the bits
         let start = match self.source.char_indices().nth(self.start) {
             Some(s) => s.0,
@@ -214,11 +196,7 @@ impl<'a> Scanner<'a> {
     }
 
     fn comment(&mut self) -> Token {
-        loop {
-            let c = match self.chars.peek() {
-                Some(c) => *c,
-                None => break
-            };
+        while let Some(c) = self.chars.peek().cloned() {
             if c != '\n' {
                 self.advance();
             }
