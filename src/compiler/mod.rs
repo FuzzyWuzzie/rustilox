@@ -7,7 +7,7 @@ use self::scanner::Scanner;
 
 #[cfg(test)] mod tests;
 
-pub fn compile(source: &String) -> Result<(), LoxError> {
+pub fn compile(source: &str) -> Result<(), LoxError> {
     let mut scanner: Scanner = Scanner::init(&source);
 
     let mut line: usize = 0;
@@ -19,10 +19,8 @@ pub fn compile(source: &String) -> Result<(), LoxError> {
             }
             line = token.line;
         }
-        else {
-            if cfg!(feature = "trace_scanner") {
-                print!("   | ");
-            }
+        else if cfg!(feature = "trace_scanner") {
+            print!("   | ");
         }
 
         if cfg!(feature = "trace_scanner") {

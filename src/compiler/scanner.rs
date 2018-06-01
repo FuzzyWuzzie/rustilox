@@ -6,7 +6,7 @@ use super::token::TokenType;
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
-    pub source: &'a String,
+    pub source: &'a str,
     pub chars: Peekable<Chars<'a>>,
     pub start: usize,
     pub current: usize,
@@ -24,7 +24,7 @@ fn is_alpha(c: char) -> bool {
 }
 
 impl<'a> Scanner<'a> {
-    pub fn init(source: &'a String) -> Self {
+    pub fn init(source: &'a str) -> Self {
         Scanner {
             source,
             chars: source.chars().peekable(),
@@ -103,7 +103,7 @@ impl<'a> Scanner<'a> {
             };
         }
 
-        if let None = self.chars.peek() {
+        if self.chars.peek().is_none() {
             return self.error_token("unterminated string");
         }
 

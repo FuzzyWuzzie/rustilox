@@ -11,7 +11,7 @@ use rustilox::Value;
 fn repl() -> Result<Value, Box<Error>> {
     loop {
         let line = rprompt::prompt_reply_stdout("> ")?;
-        if line.len() == 0 {
+        if line.is_empty() {
             return Ok(Value::Nil);
         }
 
