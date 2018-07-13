@@ -26,7 +26,7 @@ fn test_instruction_at_a_time() {
     chunk.write(OP_NOT, 124);
     chunk.write(OP_RETURN, 124);
 
-    let mut vm: VM = VM::init(&chunk);
+    let mut vm: VM = VM::init_with_chunk(chunk);
     let result = vm.evaluate().expect("evaluate");
     assert_eq!(result, Value::Boolean(false));
 }
@@ -39,7 +39,7 @@ fn test_instruction_at_a_block() {
         vec![123,123,123,123,123,123,123,123,124,124,124,124,125,125]
     );
 
-    let mut vm: VM = VM::init(&chunk);
+    let mut vm: VM = VM::init_with_chunk(chunk);
     let result = vm.evaluate().expect("evaluate");
     assert_eq!(result, Value::Boolean(false));
 }

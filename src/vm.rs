@@ -20,6 +20,14 @@ impl VM {
         }
     }
 
+    pub fn init_with_chunk(chunk: Chunk) -> VM {
+        VM {
+            chunk: Box::new(chunk),
+            ip: 0,
+            stack: Vec::new()
+        }
+    }
+
     fn read_byte(&mut self) -> u8 {
         self.ip += 1;
         self.chunk.code[self.ip - 1]
