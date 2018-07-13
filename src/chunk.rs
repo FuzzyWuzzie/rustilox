@@ -2,6 +2,7 @@ use std::fmt;
 
 use ::opcodes::*;
 use ::values::{Value, ValueArray};
+use ::errors::LoxError;
 
 pub struct Chunk {
     pub code: Vec<u8>,
@@ -50,9 +51,13 @@ impl Chunk {
         self.count += 1;
     }
 
-    pub fn add_constant(&mut self, value: Value) -> u8 {
+    pub fn add_constant(&mut self, value: Value) -> Result<u8, LoxError> {
+        if self.constants.count >= 255 {
+            return Err(LoxError::CompileError("too many constants in one chunk".to_string(), self.lines[self.count]));
+        }
+
         self.constants.write(value);
-        self.constants.count - 1
+        Ok(self.constants.count - 1)
     }
 
     fn simple_instruction(f: &mut fmt::Formatter, name:&str, offset:usize) -> Result<usize, fmt::Error> {

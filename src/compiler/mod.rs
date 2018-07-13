@@ -11,13 +11,13 @@ use chunk::Chunk;
 #[cfg(test)] mod tests;
 
 pub fn compile(source: &str, mut chunk: &mut Chunk) -> Result<(), LoxError> {
-    let mut parser = Parser::init(&source);
+    let mut parser = Parser::init(&source, &mut chunk);
     
     parser.advance();
     //expression();
     parser.consume(TokenType::Eof, "expected end of expression");
 
-    end_compiler(&mut parser, &mut chunk);
+    end_compiler(&mut parser);
 
     if parser.had_error {
         return  Err(LoxError::CompileError("failed to compile!".to_string(), parser.scanner.line));
@@ -25,6 +25,6 @@ pub fn compile(source: &str, mut chunk: &mut Chunk) -> Result<(), LoxError> {
     Ok(())
 }
 
-fn end_compiler(parser: &mut Parser, mut chunk: &mut Chunk) {
-    parser.emit_return(&mut chunk);
+fn end_compiler(parser: &mut Parser) {
+    parser.emit_return();
 }
