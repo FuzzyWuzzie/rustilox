@@ -3,6 +3,7 @@ use std::iter::Peekable;
 
 use super::token::Token;
 use super::token::TokenType;
+use super::error_token::ErrorToken;
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
@@ -63,11 +64,11 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    fn error_token(&self, msg: &str) -> Token {
+    fn error_token(&self, error: ErrorToken) -> Token {
         Token {
-            token_type: TokenType::Error(msg.to_string()),
+            token_type: TokenType::Error(error),
             start: self.start,
-            length: msg.len(),
+            length: self.current - self.start,
             line: self.line
         }
     }
@@ -99,17 +100,17 @@ impl<'a> Scanner<'a> {
         }
 
         if self.chars.peek().is_none() {
-            return self.error_token("unterminated string");
+            return self.error_token(ErrorToken::UnterminatedString);
         }
 
         // actually get the string contents!
         let start = match self.source.char_indices().nth(self.start + 1) {
             Some(s) => s.0,
-            None => return self.error_token("string underflow")
+            None => return self.error_token(ErrorToken::StringUnderflow)
         };
         let end = match self.source.char_indices().nth(self.current - 1) {
             Some(s) => s.0,
-            None => return self.error_token(&format!("string overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+            None => return self.error_token(ErrorToken::StringOverflow)
         };
         let slice: &str = &self.source[start..end+1];
 
@@ -142,11 +143,11 @@ impl<'a> Scanner<'a> {
         // extract the bits
         let start = match self.source.char_indices().nth(self.start) {
             Some(s) => s.0,
-            None => return self.error_token("number underflow")
+            None => return self.error_token(ErrorToken::NumberUnderflow)
         };
         let end = match self.source.char_indices().nth(self.current - 1) {
             Some(s) => s.0,
-            None => return self.error_token(&format!("number overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+            None => return self.error_token(ErrorToken::NumberOverflow)
         };
         let slice: &str = &self.source[start..end+1];
 
@@ -166,11 +167,11 @@ impl<'a> Scanner<'a> {
         // extract the bits
         let start = match self.source.char_indices().nth(self.start) {
             Some(s) => s.0,
-            None => return self.error_token(&format!("identifier underflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+            None => return self.error_token(ErrorToken::IdentifierUnderflow)
         };
         let end = match self.source.char_indices().nth(self.current - 1) {
             Some(s) => s.0,
-            None => return self.error_token(&format!("identifier overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+            None => return self.error_token(ErrorToken::IdentifierOverflow)
         };
         let slice: &str = &self.source[start..end+1];
 
@@ -207,11 +208,11 @@ impl<'a> Scanner<'a> {
 
         let start = match self.source.char_indices().nth(self.start + 2) {
             Some(s) => s.0,
-            None => return self.error_token(&format!("comment underflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+            None => return self.error_token(ErrorToken::CommentUnderflow)
         };
         let end = match self.source.char_indices().nth(self.current - 1) {
             Some(s) => s.0,
-            None => return self.error_token(&format!("comment overflow, start: {}, current: {}, len: {}", self.start, self.current, self.source.len()))
+            None => return self.error_token(ErrorToken::CommentOverflow)
         };
         let slice: &str = &self.source[start..end+1];
 
@@ -281,7 +282,7 @@ impl<'a> Scanner<'a> {
 
             '"' => self.string(),
 
-            _ => self.error_token(&format!("unexpected character: '{}'", c))
+            _ => self.error_token(ErrorToken::UnexpectedCharacter(c))
         }
     }
 }

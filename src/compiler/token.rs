@@ -1,5 +1,8 @@
 use std::fmt;
 
+use compiler::error_token::ErrorToken;
+
+#[derive(Copy)]
 pub enum TokenType<'a> {
     // Single-character tokens.
     LeftParen, RightParen,
@@ -23,15 +26,24 @@ pub enum TokenType<'a> {
     True, Var, While,
 
     Comment(&'a str),
-    Error(String),
+    Error(ErrorToken),
     Eof,
 }
 
+impl<'a> Clone for TokenType<'a> {
+    fn clone(&self) -> TokenType<'a> { *self }
+}
+
+#[derive(Copy)]
 pub struct Token<'a> {
     pub token_type: TokenType<'a>,
     pub start: usize,
     pub length: usize,
     pub line: usize
+}
+
+impl<'a> Clone for Token<'a> {
+    fn clone(&self) -> Token<'a> { *self }
 }
 
 impl<'a> fmt::Display for TokenType<'a> {
@@ -76,7 +88,7 @@ impl<'a> fmt::Display for TokenType<'a> {
             TokenType::Var => write!(f, "var"),
             TokenType::While => write!(f, "while"),
             TokenType::Comment(note) => write!(f, "comment: {}", note),
-            TokenType::Error(msg) => write!(f, "error: {}", msg),
+            TokenType::Error(token) => write!(f, "error: {}", token),
             TokenType::Eof => write!(f, "eof"),
         }
     }
