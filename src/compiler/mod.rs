@@ -13,35 +13,81 @@ use chunk::Chunk;
 struct Parser<'a> {
     current: Option<Token<'a>>,
     previous: Option<Token<'a>>,
+    scanner: Scanner<'a>,
+    had_error: bool,
+    panic_mode: bool,
 }
 
 pub fn compile(source: &str, chunk: &mut Chunk) -> Result<(), LoxError> {
-    let mut scanner: Scanner = Scanner::init(&source);
-    let mut parser = Parser {
-        current: None,
-        previous: None
-    };
+    //let mut scanner: Scanner = Scanner::init(&source);
+    let mut parser = Parser::init(&source);
 
-    advance(&mut parser, &mut scanner);
+    
+    parser.advance();
     //expression();
-    //consume(TOKEN_EOF, "Expected end of expression");
+    parser.consume(TokenType::Eof, "expected end of expression");
 
+    if parser.had_error {
+        return  Err(LoxError::CompileError("failed to compile!".to_string(), parser.scanner.line));
+    }
     Ok(())
 }
 
-fn advance<'p, 's: 'p>(parser: &'p mut Parser<'p>, scanner: &'s mut Scanner<'s>) {
-    parser.previous = parser.current;
-
-    loop {
-        let tok = scanner.scan_token();
-        parser.current = Some(tok);
-
-        if let TokenType::Error(e) = tok.token_type {
-            error_at_current(tok.start);
+impl<'a> Parser<'a> {
+    pub fn init(source: &'a str) -> Parser<'a> {
+        Parser {
+            current: None,
+            previous: None,
+            scanner: Scanner::init(&source),
+            had_error: false,
+            panic_mode: false
         }
     }
-}
 
-fn error_at_current(start: usize) {
-    
+    pub fn advance(&mut self) {
+        self.previous = self.current;
+
+        loop {
+            self.current = Some(self.scanner.scan_token());
+            if let TokenType::Error(e) = self.current.unwrap().token_type {
+                self.error_at_current(&format!("error: {}", e));
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    pub fn consume(&mut self, token_type: TokenType, msg: &str) {
+        if self.current.unwrap().token_type == token_type {
+            self.advance();
+            return;
+        }
+
+        self.error_at_current(msg);
+    }
+
+    fn error_at_current(&mut self, msg: &str) {
+        let token = self.current.unwrap();
+        self.error_at(&token, msg);
+    }
+
+    fn error_at(&mut self, token: &Token, msg: &str) {
+        // suppress errors if we're already panicking
+        if self.panic_mode {
+            return;
+        }
+        self.panic_mode = true;
+
+        eprint!("[line {}] Error", token.line);
+
+        match token.token_type {
+            TokenType::Eof => eprint!(" at end"),
+            TokenType::Error(_) => (),
+            _ => eprint!(" at pos '{}'", token.start),
+        }
+
+        eprintln!(": {}", msg);
+        self.had_error = true;
+    }
 }

@@ -64,7 +64,7 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    fn error_token(&self, error: ErrorToken) -> Token {
+    fn error_token(&self, error: ErrorToken) -> Token<'a> {
         Token {
             token_type: TokenType::Error(error),
             start: self.start,
@@ -90,7 +90,7 @@ impl<'a> Scanner<'a> {
         matches
     }
 
-    fn string(&mut self) -> Token {
+    fn string(&mut self) -> Token<'a> {
         while let Some(c) = self.chars.peek().cloned() {
             match c {
                 '\n' => { self.line += 1; },
@@ -118,7 +118,7 @@ impl<'a> Scanner<'a> {
         self.make_token(TokenType::String(slice))
     }
 
-    fn number(&mut self) -> Token {
+    fn number(&mut self) -> Token<'a> {
         while let Some(c) = self.chars.peek().cloned() {
             if !is_digit(c) {
                 break;
@@ -154,7 +154,7 @@ impl<'a> Scanner<'a> {
         self.make_token(TokenType::Number(slice))
     }
 
-    fn identifer(&mut self) -> Token {
+    fn identifer(&mut self) -> Token<'a> {
         while let Some(c) = self.chars.peek().cloned() {
             if is_digit(c) || is_alpha(c) {
                 self.advance();
@@ -196,7 +196,7 @@ impl<'a> Scanner<'a> {
         })
     }
 
-    fn comment(&mut self) -> Token {
+    fn comment(&mut self) -> Token<'a> {
         while let Some(c) = self.chars.peek().cloned() {
             if c != '\n' {
                 self.advance();
@@ -219,7 +219,7 @@ impl<'a> Scanner<'a> {
         self.make_token(TokenType::Comment(slice))
     }
 
-    pub fn scan_token(&mut self) -> Token {
+    pub fn scan_token(&mut self) -> Token<'a> {
         self.skip_whitespace();
 
         self.start = self.current;

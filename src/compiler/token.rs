@@ -3,6 +3,7 @@ use std::fmt;
 use compiler::error_token::ErrorToken;
 
 #[derive(Copy)]
+#[derive(PartialEq)]
 pub enum TokenType<'a> {
     // Single-character tokens.
     LeftParen, RightParen,
@@ -27,7 +28,7 @@ pub enum TokenType<'a> {
 
     Comment(&'a str),
     Error(ErrorToken),
-    Eof,
+    Eof
 }
 
 impl<'a> Clone for TokenType<'a> {

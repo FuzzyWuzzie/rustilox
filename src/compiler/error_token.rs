@@ -1,6 +1,7 @@
 use std::fmt;
 
 #[derive(Copy)]
+#[derive(PartialEq)]
 pub enum ErrorToken {
     UnterminatedString,
     UnexpectedCharacter(char),
