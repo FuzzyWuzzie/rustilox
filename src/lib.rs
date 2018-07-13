@@ -13,5 +13,7 @@ mod compiler;
 pub use interpreter::interpret;
 pub use values::Value;
 pub use errors::LoxError;
+pub use vm::VM;
+pub use chunk::Chunk;
 
 #[cfg(test)] mod tests;

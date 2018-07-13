@@ -5,16 +5,16 @@ use opcodes::*;
 use values::Value;
 use errors::LoxError;
 
-pub struct VM<'a> {
-    pub chunk: &'a Chunk,
-    ip: usize,
-    stack: Vec<Value>
+pub struct VM {
+    pub chunk: Box<Chunk>,
+    pub ip: usize,
+    pub stack: Vec<Value>
 }
 
-impl<'a> VM<'a> {
-    pub fn init(chunk: &Chunk) -> VM {
+impl VM {
+    pub fn init() -> VM {
         VM {
-            chunk,
+            chunk: Box::new(Chunk::init()),
             ip: 0,
             stack: Vec::new()
         }
@@ -44,6 +44,10 @@ impl<'a> VM<'a> {
     }
 
     pub fn evaluate(&mut self) -> Result<Value, LoxError> {
+        if self.chunk.count == 0 {
+            return Err(LoxError::InterpetError("Chunk is empty".to_string(), 0));
+        }
+
         loop {
             if cfg!(feature = "trace_execution") {
                 print!("          ");
