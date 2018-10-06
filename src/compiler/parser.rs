@@ -4,6 +4,8 @@ use super::scanner::Scanner;
 use chunk::Chunk;
 use values::Value;
 use opcodes;
+use std::str::FromStr;
+use std::num::ParseFloatError;
 
 pub struct Parser<'a> {
     pub current: Option<Token<'a>>,
@@ -88,6 +90,16 @@ impl<'a> Parser<'a> {
 
     pub fn emit_return(&mut self) {
         self.emit_byte(opcodes::OP_RETURN);
+    }
+
+    pub fn number(&mut self) -> Result<(), ParseFloatError> {
+        if let Some(tok) = self.current {
+            if let TokenType::Number(s) = tok.token_type {
+                let value: f64 = f64::from_str(s)?;
+                self.emit_constant(Value::Real(value));
+            }
+        }
+        Ok(())
     }
 
     pub fn emit_constant(&mut self, value: Value) {
