@@ -54,6 +54,10 @@ impl<'a> Parser<'a> {
         self.error_at(&token, msg);
     }
 
+    pub fn expression(&self) {
+
+    }
+
     fn error_at(&mut self, token: &Token, msg: &str) {
         // suppress errors if we're already panicking
         if self.panic_mode {
@@ -99,5 +103,10 @@ impl<'a> Parser<'a> {
                 return 0;
             }
         }
+    }
+
+    fn grouping(&mut self) {
+        self.expression();
+        self.consume(TokenType::RightParen, "expect ')' after expression");
     }
 }

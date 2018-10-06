@@ -14,7 +14,7 @@ pub fn compile(source: &str, mut chunk: &mut Chunk) -> Result<(), LoxError> {
     let mut parser = Parser::init(&source, &mut chunk);
     
     parser.advance();
-    //expression();
+    parser.expression();
     parser.consume(TokenType::Eof, "expected end of expression");
 
     end_compiler(&mut parser);
