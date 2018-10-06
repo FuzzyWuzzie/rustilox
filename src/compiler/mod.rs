@@ -2,6 +2,7 @@ mod token;
 mod scanner;
 mod error_token;
 mod parser;
+mod precedence;
 
 use errors::LoxError;
 use self::token::TokenType;

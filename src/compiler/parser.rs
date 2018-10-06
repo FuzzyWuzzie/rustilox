@@ -1,6 +1,7 @@
 use super::token::Token;
 use super::token::TokenType;
 use super::scanner::Scanner;
+use super::precedence::Precedence;
 use chunk::Chunk;
 use values::Value;
 use opcodes;
@@ -56,8 +57,8 @@ impl<'a> Parser<'a> {
         self.error_at(&token, msg);
     }
 
-    pub fn expression(&self) {
-
+    pub fn expression(&mut self) {
+        self.parse_precedence(Precedence::Assignment);
     }
 
     fn error_at(&mut self, token: &Token, msg: &str) {
@@ -93,7 +94,7 @@ impl<'a> Parser<'a> {
     }
 
     pub fn number(&mut self) -> Result<(), ParseFloatError> {
-        if let Some(tok) = self.current {
+        if let Some(tok) = self.previous {
             if let TokenType::Number(s) = tok.token_type {
                 let value: f64 = f64::from_str(s)?;
                 self.emit_constant(Value::Real(value));
@@ -117,8 +118,25 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn grouping(&mut self) {
+    pub fn grouping(&mut self) {
         self.expression();
         self.consume(TokenType::RightParen, "expect ')' after expression");
+    }
+
+    pub fn unary(&mut self) {
+        let operator_type: TokenType = self.previous.unwrap().token_type;
+
+        // compile the operand
+        self.parse_precedence(Precedence::Unary);
+
+        // emit the operator instruction
+        match operator_type {
+            TokenType::Minus => self.emit_byte(opcodes::OP_NEGATE),
+            _ => (),
+        }
+    }
+
+    fn parse_precedence(&mut self, precedence: Precedence) {
+        // ?
     }
 }
